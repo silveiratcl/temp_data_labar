@@ -16,7 +16,8 @@ library(plotly)
 library(lubridate)
 library(dplyr)
 library(readxl)
-
+library(tidyverse)
+library(magrittr)
 library(RColorBrewer)
 palette(brewer.pal(8, "Set2"))
 ```
@@ -24,15 +25,47 @@ palette(brewer.pal(8, "Set2"))
 ```{r dataread, include=FALSE}
 
 # create function to read and combine all data in the folder
-
 teste<-read_excel("temp_tidybit_sv_2022-08-17.xlsx", sheet = "temp_tidybit_sv_2022-11-11")
 
+# setting the path
+getwd()
 
-# 1 read data folder
-# 2 read data inside all locations
-# 3 rbind all data
+cols = list(c())
+
+temp_data <- list.files(path = "data",
+                   pattern = "*.xlsx",
+                   full.names = TRUE,
+                   recursive = TRUE) %>% # 1 read data folder# 2 read data inside all locations
+  
+  lapply(read_excel(col_types = "text")) %>% 
+  bind_rows # 3 rbind all data
+
+# https://stackoverflow.com/questions/51929462/specify-col-type-by-name-in-lapply
+
 
 temp_data
+
+
+
+
+read_excel("temp_tidybit_sv_2022-08-17.xlsx",
+           col_types = c("date", 
+                         "text",
+                         "numeric", 
+                         "numeric", 
+                         "numeric", 
+                         "numeric",
+                         "text",
+                         "text",
+                         "text",
+                         "text",
+                         "text",
+                         "text"))
+
+
+
+
+
 
 ```
 
@@ -82,3 +115,12 @@ leaflet(siteCoords) %>%
   addMiniMap(toggleDisplay = T)
 
 ```
+
+```{r}
+
+
+# line charts
+
+
+```
+
