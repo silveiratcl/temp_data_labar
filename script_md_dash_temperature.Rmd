@@ -1,0 +1,84 @@
+---
+title: "Temperature data Rebio Arvoredo e surroundings"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(readr)
+library(reshape2)
+library(leaflet)
+library(ggplot2)
+library(vegan)
+library(plotly)
+library(lubridate)
+library(dplyr)
+library(readxl)
+
+library(RColorBrewer)
+palette(brewer.pal(8, "Set2"))
+```
+
+```{r dataread, include=FALSE}
+
+# create function to read and combine all data in the folder
+
+teste<-read_excel("temp_tidybit_sv_2022-08-17.xlsx", sheet = "temp_tidybit_sv_2022-11-11")
+
+
+# 1 read data folder
+# 2 read data inside all locations
+# 3 rbind all data
+
+temp_data
+
+```
+
+General Information
+======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+
+### REBIO Arvoredo e Entorno 2020
+
+```{r map}
+## get lat lon
+siteCoords = temp_data %>% dplyr::group_by(site_code)%>% 
+  dplyr::summarise(lng = mean(lon_dd, na.rm=T), 
+            lat = mean(lat_dd, na.rm=T))
+
+## get total abund by site
+siteAbund = iscDF %>%  
+  filter(taxon != "NA" & abund!= "0")%>% #excluding fishing trash and abund zero
+  dplyr::group_by(site_code) %>% 
+  dplyr::summarise(sumAbund = sum(abund, na.rm=T),
+  richness = n_distinct(taxon)) 
+
+
+## add abund and cover to coords
+siteCoords = full_join(siteCoords, siteAbund)
+
+## create a color palette
+pal <- colorFactor(palette = c('#e31a1c','#1f78b4','#b2df8a','#33a02c',
+                               '#fb9a99','#a6cee3','#fdbf6f','#ff7f00',
+                               '#cab2d6','#6a3d9a','#ffff99','#b15928'),
+                              domain= c("AR", "DE","DS","ESTL","ESTO",
+                                        "FA", "NL","RN","SA", "SC", 
+                                        "TS","XV"))
+
+## make leaflet map
+leaflet(siteCoords) %>% 
+  addTiles() %>% 
+  addCircleMarkers(label = ~paste0(site_code,' / N. Taxa: ', richness), 
+                   radius = ~100 * (sumAbund/(sumAbund))/4,
+                   color = ~pal(site_code), 
+                   fillOpacity = 0.9,
+                   stroke = T,
+                   clusterOptions = markerClusterOptions()) %>% 
+  addMiniMap(toggleDisplay = T)
+
+```
