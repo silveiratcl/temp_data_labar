@@ -17,6 +17,7 @@ library(lubridate)
 library(dplyr)
 library(readxl)
 library(tidyverse)
+library(purrr)
 library(magrittr)
 library(RColorBrewer)
 palette(brewer.pal(8, "Set2"))
@@ -30,18 +31,6 @@ teste<-read_excel("temp_tidybit_sv_2022-08-17.xlsx", sheet = "temp_tidybit_sv_20
 # setting the path
 getwd()
 
-c_types = c( "date",
-               "text", 
-               "numeric",
-               "numeric", 
-               "numeric", 
-               "numeric",
-               "text",
-               "text",
-               "text",
-               "text",
-               "text", 
-               "text")
 
 
 files_path <- 
@@ -52,14 +41,10 @@ files_path <-
     recursive = TRUE)#%>%   # 1 read data folder# 2 read data inside all locations
 
 test <- map_dfr(files_path, read_xlsx)
-bind_rows # 3 rbind all data
 
-# https://stackoverflow.com/questions/51929462/specify-col-type-by-name-in-lapply
 
-library(purrr)
-test <- map_dfr(files_path, read_xlsx, col_types = c_types)
-str(test)
 
+files_path <- files_path[1:2]
 
 ```
 
