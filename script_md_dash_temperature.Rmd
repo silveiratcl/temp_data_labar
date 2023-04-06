@@ -1,8 +1,7 @@
 ---
 title: "Temperature data Rebio Arvoredo e surroundings"
 output: 
-  flexdashboard::flex_dashboard:
-    orientation: rows
+  flexdashboard::flex_dashboard
 ---
 
 ```{r setup, include=FALSE}
@@ -20,86 +19,379 @@ library(tidyverse)
 library(purrr)
 library(magrittr)
 library(RColorBrewer)
+
 palette(brewer.pal(8, "Set2"))
 ```
 
 ```{r dataread, message=FALSE, warning=FALSE, include=FALSE}
 
-# create function to read and combine all data in the folder
-teste<-read_excel("temp_tidybit_sv_2022-08-17.xlsx", sheet = "temp_tidybit_sv_2022-11-11")
+# create function to read and combine all data in the folder(Attention il faut sumplifier le path pour qu'il soit utilisable pour tous)
 
-# setting the path
-getwd()
-
-
-
-files_path <- 
-    list.files(
-    path = "data",
-    pattern = "*.xlsx",
-    full.names = TRUE,
-    recursive = TRUE)#%>%   # 1 read data folder# 2 read data inside all locations
-
-test <- map_dfr(files_path, read_xlsx)
-
-
-
-files_path <- files_path[1:2]
-
+IC2<-read.csv("data/IC.csv",header=TRUE,sep=";", dec=",")
+TS<-read.csv("data/TS.csv",header=TRUE,sep=";", dec=",")
+FA<-read.csv("data/FA.csv",header=TRUE,sep=";", dec=",")
+DE<-read.csv("data/DE.csv",header=TRUE,sep=";", dec=",")
+AR<-read.csv("data/AR.csv",header=TRUE,sep=";", dec=",")
+IG<-read.csv("data/IG.csv",header=TRUE,sep=";", dec=",")
+RN<-read.csv("data/RN.csv",header=TRUE,sep=";", dec=",")
 ```
 
-General Information
-======================================================================
 
-Row
------------------------------------------------------------------------
+Column 
+-------------------------------------
 
-
-### REBIO Arvoredo e Entorno 2020
+### Arvoredo Map
 
 ```{r map}
+###Ilha de Campeche
+IC2$Latitude = as.numeric(IC2$Latitude)
+IC2$Longitude = as.numeric(IC2$Longitude)
+IC2$Depth_m =as.numeric(IC2$Depth_m)
+IC2$Temp= as.numeric(IC2$Temp)
 ## get lat lon
-siteCoords = temp_data %>% dplyr::group_by(site_code)%>% 
-  dplyr::summarise(lng = mean(lon_dd, na.rm=T), 
-            lat = mean(lat_dd, na.rm=T))
+siteCoordsIC = IC2 %>% 
+  dplyr::group_by(Site)%>% 
+  dplyr::summarise(lng = mean(Longitude, na.rm=T), 
+                   lat = mean(Latitude, na.rm=T))
 
-## get total abund by site
-siteAbund = iscDF %>%  
-  filter(taxon != "NA" & abund!= "0")%>% #excluding fishing trash and abund zero
-  dplyr::group_by(site_code) %>% 
-  dplyr::summarise(sumAbund = sum(abund, na.rm=T),
-  richness = n_distinct(taxon)) 
+##get the depth
+siteDepth = IC2 %>% 
+  dplyr::group_by(Site, Stratum)%>%
+  dplyr::summarise (depth=mean(Depth_m, na.rm=T))
+  
+## get temp information by site
+siteTempIC = IC2 %>% dplyr::group_by(Site)%>%  
+  dplyr::group_by(Site) %>% 
+  dplyr::summarise(maxTemp = max(Temp, na.rm=T),minTemp = min(Temp, na.rm = T), meanTemp=mean(Temp, na.rm=T)) 
+
+## add abund and cover to coords
+siteCoordsIC2 = full_join(siteCoordsIC, siteTempIC)#we have to add the depth
+
+####FAROL
+FA$latitude <- as.numeric(FA$latitude)
+FA$longitude <- as.numeric(FA$longitude)
+FA$Depth_m <- as.numeric(FA$Depth_m)
+FA$Temp <- as.numeric(FA$Temp)
+
+## get lat lon
+siteCoordsFA = FA %>% 
+  dplyr::group_by(Site)%>% 
+  dplyr::summarise(lng = mean(longitude, na.rm=T), 
+                   lat = mean(latitude, na.rm=T))
+##get the depth
+siteDepthFA = FA %>% 
+  dplyr::group_by(Site, Depth_m)%>% 
+  #filter(Depth_m!="NA")
+  dplyr::summarise (depth=mean(Depth_m, na.rm=T))
+
+
+
+## get temp information by site
+siteTempFA = FA %>% dplyr::group_by(Site)%>%  
+  dplyr::group_by(Site) %>% 
+  dplyr::summarise(maxTemp = max(Temp, na.rm=T),minTemp = min(Temp, na.rm = T), meanTemp=mean(Temp, na.rm=T)) 
+
+## add abund and cover to coords
+siteCoordsFA2 = full_join(siteCoordsFA, siteTempFA)#we have to add the depth
+
+###Aranha
+AR$latitude <- as.numeric(AR$latitude)
+AR$longitude <- as.numeric(AR$longitude)
+AR$Depth_m <- as.numeric(AR$Depth_m)
+AR$Temp <- as.numeric(AR$Temp)
+## get lat lon
+siteCoordsAR = AR %>% 
+  filter(Site != "NA")%>%
+  dplyr::group_by(Site)%>%
+  
+  dplyr::summarise(lng = mean(longitude, na.rm=T), 
+                   lat = mean(latitude, na.rm=T))
+
+##get the depth
+siteDepthAR = AR %>% 
+  dplyr::group_by(Site, Depth_m)%>% 
+  filter(Site != "NA")%>%
+  #filter(Depth_m!="NA")
+  dplyr::summarise (depth=mean(Depth_m, na.rm=T))
+
+
+## get temp information by site
+siteTempAR = AR %>% dplyr::group_by(Site)%>%  
+  dplyr::group_by(Site) %>% 
+  filter(Site != "NA")%>%
+  dplyr::summarise(maxTemp = max(Temp, na.rm=T),minTemp = min(Temp, na.rm = T), meanTemp=mean(Temp, na.rm=T)) 
+
+## add abund and cover to coords
+siteCoordsAR2 = full_join(siteCoordsAR, siteTempAR)#we have to add the depth
+
+####Deserta
+DE$latitude <- as.numeric(DE$latitude)
+DE$longitude <- as.numeric(DE$longitude)
+DE$Depth_m <- as.numeric(DE$Depth_m)
+DE$Temp <- as.numeric(DE$Temp)
+
+
+## get lat lon
+siteCoordsDE = DE %>% 
+  dplyr::group_by(Site)%>% 
+  dplyr::summarise(lng = mean(longitude, na.rm=T), 
+                   lat = mean(latitude, na.rm=T))
+##get the depth
+siteDepthDE = DE %>% 
+  dplyr::group_by(Site, Stratum)%>% 
+  #filter(Depth_m!="NA")
+  dplyr::summarise (depth=mean(Depth_m, na.rm=T))
+
+## get temp information by site
+siteTempDE = DE %>% dplyr::group_by(Site)%>%  
+  dplyr::group_by(Site) %>% 
+  dplyr::summarise(maxTemp = max(Temp, na.rm=T),minTemp = min(Temp, na.rm = T), meanTemp=mean(Temp, na.rm=T)) 
+## get temp information by site AND by Depth
+siteTempDE2 = DE %>% dplyr::group_by(Site)%>%  
+  dplyr::group_by(Site,Depth_m) %>% 
+  dplyr::summarise(maxTemp = max(Temp, na.rm=T),minTemp = min(Temp, na.rm = T), meanTemp=mean(Temp, na.rm=T)) 
+
+## add abund and cover to coords
+siteCoordsDE2 = full_join(siteCoordsDE, siteTempDE)#we have to add the depth
+###TOCA DE SALEMA
+#Put the data with the good format
+TS$Temp <- as.numeric(TS$Temp)
+TS$latitude <- as.numeric(TS$latitude)
+TS$longitude <- as.numeric(TS$longitude)
+TS$Depth_m <- as.numeric(TS$Depth_m)
+## get lat lon
+siteCoordsTS = TS %>%
+  dplyr::group_by(Site)%>% 
+  dplyr::summarise(lng = mean(longitude, na.rm=T), 
+                   lat = mean(latitude, na.rm=T))
+##get the depth
+siteDepthTS = TS %>% 
+  dplyr::group_by(Site, Depth_m)%>% 
+  #filter(Depth_m!="NA")
+  dplyr::summarise (depth=mean(Depth_m, na.rm=T))
+
+## get temp information by site => utiliser round pour avoir 2 décimales
+siteTempTS = TS %>% dplyr::group_by(Site)%>%  
+  dplyr::group_by(Site) %>% 
+  dplyr::summarise(maxTemp = max(Temp, na.rm=T),minTemp = min(Temp, na.rm = T), meanTemp=mean(Temp, na.rm=T)) 
+## get temp information by site AND by Depth
+siteTempTS2 = DE %>% dplyr::group_by(Site)%>%  
+  dplyr::group_by(Site,Depth_m) %>% 
+  dplyr::summarise(maxTemp = max(Temp, na.rm=T),minTemp = min(Temp, na.rm = T), meanTemp= mean(Temp, na.rm=T)) 
+
+## add abund and cover to coords
+siteCoordsTS2 = full_join(siteCoordsTS, siteTempTS)#we have to add the depth
+
+####RANCHO NORTE 
+RN$Temp <- as.numeric(RN$Temp)
+RN$Latitude <- as.numeric(RN$Latitude)
+RN$Longitude <- as.numeric(RN$Longitude)
+RN$Depth_m <- as.numeric(RN$Depth_m)
+## get lat lon
+siteCoordsRN = RN %>% 
+  filter(Site != "NA")%>%
+  dplyr::group_by(Site)%>%
+  
+  dplyr::summarise(lng = mean(Longitude, na.rm=T), 
+                   lat = mean(Latitude, na.rm=T))
+
+##get the depth
+siteDepthRN = RN %>% 
+  dplyr::group_by(Site, Depth_m)%>% 
+  filter(Site != "NA")%>%
+  #filter(Depth_m!="NA")
+  dplyr::summarise (depth=mean(Depth_m, na.rm=T))
+
+## get temp information by site
+siteTempRN = RN %>% dplyr::group_by(Site)%>%  
+  dplyr::group_by(Site) %>% 
+  filter(Site != "NA")%>%
+  dplyr::summarise(maxTemp = max(Temp, na.rm=T),minTemp = min(Temp, na.rm = T), meanTemp=mean(Temp, na.rm=T)) 
+
+## add abund and cover to coords
+siteCoordsRN2 = full_join(siteCoordsRN, siteTempRN)#we have to add the depth
+#####IG
+IG$latitude <- as.numeric(IG$latitude)
+IG$longitude <- as.numeric(IG$longitude)
+IG$Depth_m <- as.numeric(IG$Depth_m)
+IG$Temp <- as.numeric(IG$Temp)
+
+## get lat lon
+siteCoordsIG = IG %>% 
+  dplyr::group_by(Site)%>% 
+  dplyr::summarise(lng = mean(longitude, na.rm=T), 
+                   lat = mean(latitude, na.rm=T))
+##get the depth = PAS BON
+siteDepthIG = IG %>% 
+  dplyr::group_by(Site, Depth_m)%>% 
+  #filter(Depth_m!="NA")
+  dplyr::summarise (depth=mean(Depth_m, na.rm=T))
+
+
+## get temp information by site
+siteTempIG = IG %>% dplyr::group_by(Site)%>%  
+  dplyr::group_by(Site) %>%
+  dplyr::summarise(maxTemp = max(Temp, na.rm=T),minTemp = min(Temp, na.rm = T), meanTemp=mean(Temp, na.rm=T)) 
 
 
 ## add abund and cover to coords
-siteCoords = full_join(siteCoords, siteAbund)
+siteCoordsIG2 = full_join(siteCoordsIG, siteTempIG)#we have to add the depth
+
 
 ## create a color palette
 pal <- colorFactor(palette = c('#e31a1c','#1f78b4','#b2df8a','#33a02c',
-                               '#fb9a99','#a6cee3','#fdbf6f','#ff7f00',
-                               '#cab2d6','#6a3d9a','#ffff99','#b15928'),
-                              domain= c("AR", "DE","DS","ESTL","ESTO",
-                                        "FA", "NL","RN","SA", "SC", 
-                                        "TS","XV"))
+                                        '#fb9a99','#a6cee3','#fdbf6f','#ff7f00',
+                                        '#cab2d6','#6a3d9a','#ffff99','#b15928'),
+                                        domain= c("AR", "DE","DS","ESTL","ESTO",
+                                                  "FA", "NL","RN","SA", "SC", 
+                                                  "TS","XV"))
 
-## make leaflet map
-leaflet(siteCoords) %>% 
-  addTiles() %>% 
-  addCircleMarkers(label = ~paste0(site_code,' / N. Taxa: ', richness), 
-                   radius = ~100 * (sumAbund/(sumAbund))/4,
-                   color = ~pal(site_code), 
-                   fillOpacity = 0.9,
-                   stroke = T,
-                   clusterOptions = markerClusterOptions()) %>% 
+##
+Z <- rbind(siteCoordsAR2,siteCoordsDE2,siteCoordsFA2,siteCoordsIC2,siteCoordsIG2,siteCoordsTS2,siteCoordsRN2)
+Z
+##
+leaflet(Z[1:6]) %>% 
+  addTiles() %>%
+  addMarkers(popup = ~paste0('Coord, ',Site,"<br/>long :",lng,"<br/>",'lat :',lat,"<br/>",'minTemp :', minTemp,"<br/>",'maxTemp :',maxTemp,"<br/>",'meanTemp :',meanTemp), #add the information when you click on the icon : the information of Temp are only depending on the site and not the temp (global min/max/mean)
+             label = ~paste0(Site),
+  clusterOptions = markerClusterOptions()) %>% 
   addMiniMap(toggleDisplay = T)
-
 ```
 
+
+Column {.tabset}
+-------------------------------------
+### Ilha de Campeche
 ```{r}
-
-
-# line charts
-
+IC2$Temp <- as.numeric(IC2$Temp)
+IC2$Date=as.Date(IC2$Date)
+IC2$Depth_m <- factor(IC2$Depth_m)
+ICgraph <-ggplot() + geom_line(data =IC2, aes(x = Date, y = Temp, color = Depth_m))
+ICgraph <- ICgraph + labs(title="Temperature data from Ilha da Campeche",
+                          y = "Temperature",
+                          x = "Date",
+                          colour = "Depth")
+ggplotly(ICgraph)
 
 ```
+
+### Deserta
+```{r}
+DE$Temp = as.numeric(DE$Temp)
+DE$Date=as.Date(DE$Date)
+DE$DatetimeDE <- paste(DE$Date, DE$Hour)
+#convert date time in the Date-time format
+DE$DatetimeDE <- as.Date(DE$DatetimeDE)
+####Change the depth format as a factor and create the graphic with the different depth curves 
+DE$Depth_m <- factor(DE$Depth_m)
+DEgraph<-ggplot() + geom_line(data = DE, aes(x = DatetimeDE, y = Temp, color = Depth_m))
+DEgraph <- DEgraph+ labs(title="Temperature data from Deserta",
+                    y = "Temperature",
+                    x = "Date",
+                    colour = "Depth")
+ggplotly(DEgraph)
+```
+
+### Aranha
+```{r}
+AR$Temp <- as.numeric(AR$Temp)
+AR$Date=as.Date(AR$Date)
+AR$DatetimeAR <- paste(AR$Date, AR$Hour)
+
+#convert date time in the Date-time format
+AR$DatetimeAR <- as.Date(AR$Date, format = "ymd_hms")
+
+####Change the depth format as a factor and create the graphic with the different depth curves 
+AR$Depth_m <- factor(AR$Depth_m)
+ARgraph <-ggplot() + geom_line(data =AR, aes(x = DatetimeAR, y = Temp, color = Depth_m))
+ARgraph <- ARgraph + labs(title="Temperature data from Aranhas",
+                                y = "Temperature",
+                                x = "Date",
+                                colour = "Depth")
+ggplotly(ARgraph)
+
+```
+
+### Baia de Farol
+```{r}
+###Create a new column with Date and time together
+FA$Temp <- as.numeric(FA$Temp)
+FA$Date=as.Date(FA$Date)
+FA$DatetimeFA <- paste(FA$Date, FA$Hour)
+
+#convert date time in the Date-time format
+FA$DatetimeFA <- as.Date(FA$Date, format = "ymd_hms")
+
+
+####Change the depth format as a factor and create the graphic with the different depth curves 
+FA$Depth_m <- factor(FA$Depth_m)
+FArolgraph <-ggplot() + geom_line(data =FA, aes(x = DatetimeFA, y = Temp, color = Depth_m))
+FArolgraph <- FArolgraph + labs(title="Temperature data from Farol",
+                    y = "Temperature",
+                    x = "Date",
+                    colour = "Depth")
+ggplotly(FArolgraph)
+```
+
+### IG
+```{r}
+IG$Temp <- as.numeric(IG$Temp)
+IG$Date <- as.Date(IG$Date)
+
+###Create a new column with Date and time together
+IG$DatetimeIG <- paste(IG$Date, IG$Hour)
+
+#convert date time in the Date-time format
+IG$DatetimeIG <- as.Date(IG$Date, format = "ymd_hms")
+
+
+####Change the depth format as a factor and create the graphic with the different depth curves 
+IG$Depth_m <- factor(IG$Depth_m)
+IGgraph <-ggplot() + geom_line(data =IG, aes(x = DatetimeIG, y = Temp, color = Depth_m))
+IGgraph <- IGgraph + labs(title="Temperature data from IG",
+                                y = "Temperature",
+                                x = "Date",
+                                colour = "Depth")
+ggplotly(IGgraph)
+```
+
+### Tocca da Salema
+```{r}
+###Create a new column with Date and time together
+TS$Date=as.Date(TS$Date)
+TS$DatetimeTS <- paste(TS$Date, TS$Hour)
+#convert date time in the Date-time format
+TS$DatetimeTS <- as.Date(TS$Date, format = "ymd_hms")
+
+
+####Change the depth format as a factor and create the graphic with the different depth curves 
+TS$Depth_m <- factor(TS$Depth_m)
+TSgraph<-ggplot() + geom_line(data = TS, aes(x = DatetimeTS, y = Temp, color = Depth_m))
+TSgraph <- TSgraph + labs(title="Temperature data from Toca de Salema",
+                    y = "Temperature",
+                    x = "Date",
+                    colour = "Depth")
+ggplotly(TSgraph)
+```
+
+### Rancho Norte
+```{r}
+###Create a new column with Date and time together
+RN$Date=as.Date(RN$Date)
+RN$DatetimeRN <- paste(RN$Date, RN$Hour)
+
+#convert date time in the Date-time format
+RN$DatetimeRN <- as.Date(RN$Date, format = "ymd_hms")
+
+
+####Change the depth format as a factor and create the graphic with the different depth curves 
+RN$Depth_m <- factor(RN$Depth_m)
+RNgraph <-ggplot() + geom_line(data =RN, aes(x = DatetimeRN, y = Temp, color = Depth_m))
+RNgraph <- RNgraph + labs(title="Temperature data from Rancho Norte",
+                          y = "Temperature",
+                          x = "Date",
+                          colour = "Depth")
+ggplotly(RNgraph)
+```
+
 
