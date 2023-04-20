@@ -93,6 +93,7 @@ siteCoordsDE = DE %>%
   dplyr::summarise(lng = mean(longitude, na.rm=T), 
                    lat = mean(latitude, na.rm=T))
 
+
 ## get temp information by site
 siteTempDE = DE %>% dplyr::group_by(Site)%>%  
   dplyr::group_by(Site) %>% 
