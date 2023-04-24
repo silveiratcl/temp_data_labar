@@ -5,12 +5,32 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+
+install.packages('flexdashboard')
+install.packages('readr')
+install.packages('reshape2')
+install.packages('leaflet')
+install.packages('ggplot2')
+#install.packages('vegan') #we dont need vegan
+install.packages('plotly')
+install.packages('lubridate')
+install.packages('dplyr')
+install.packages('readxl')
+install.packages('tidyverse')
+install.packages('purrr')
+install.packages('magrittr')
+install.packages('RColorBrewer')
+install.packages('gt')
+
+
+###
+
 library(flexdashboard)
 library(readr)
 library(reshape2)
 library(leaflet)
 library(ggplot2)
-library(vegan)
+#library(vegan) #we dont need vegan
 library(plotly)
 library(lubridate)
 library(dplyr)
@@ -268,12 +288,27 @@ ggplotly(TSgraph)
 ### Rancho Norte
 ```{r}
 RN$Date=as.Date(RN$Date)
+
+####data and time together
+RN$Date_time = ymd_hms(paste(RN$Date, RN$Time))
+
+
 ####Change the depth format as a factor and create the graphic with the different depth curves 
 RN$Depth_m <- factor(RN$Depth_m)
-RNgraph <-ggplot() + geom_line(data =RN, aes(x = Date, y = Temp, color = Depth_m))
+RNgraph <-ggplot() + geom_line(data =RN, aes(x = Date_time, y = Temp, color = Depth_m))
 RNgraph <- RNgraph + labs(title="Temperature data from Rancho Norte",
                           y = "Temperature",
                           x = "Date",
                           colour = "Depth")
 ggplotly(RNgraph)
+
+
+
+#####how many lines per date
+RN %>%
+  group_by(Date) %>%
+  summarize_at(vars(c(Site)), function(x) sum(x > 1))
+
+  
+
 ```
