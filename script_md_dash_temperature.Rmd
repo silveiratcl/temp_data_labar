@@ -6,21 +6,21 @@ output:
 
 ```{r setup, include=FALSE}
 
-install.packages('flexdashboard')
-install.packages('readr')
-install.packages('reshape2')
-install.packages('leaflet')
-install.packages('ggplot2')
+#install.packages('flexdashboard')
+#install.packages('readr')
+#install.packages('reshape2')
+#install.packages('leaflet')
+#install.packages('ggplot2')
 #install.packages('vegan') #we dont need vegan
-install.packages('plotly')
-install.packages('lubridate')
-install.packages('dplyr')
-install.packages('readxl')
-install.packages('tidyverse')
-install.packages('purrr')
-install.packages('magrittr')
-install.packages('RColorBrewer')
-install.packages('gt')
+#install.packages('plotly')
+#install.packages('lubridate')
+#install.packages('dplyr')
+#install.packages('readxl')
+#install.packages('tidyverse')
+#install.packages('purrr')
+#install.packages('magrittr')
+#install.packages('RColorBrewer')
+#install.packages('gt')
 
 
 ###
@@ -287,7 +287,7 @@ ggplotly(TSgraph)
 ```
 ### Rancho Norte
 ```{r}
-RN$Date=as.Date(RN$Date)
+RN$Date = as.Date(RN$Date)
 
 ####data and time together
 RN$Date_time = ymd_hms(paste(RN$Date, RN$Time))
